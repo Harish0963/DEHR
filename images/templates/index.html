@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM Image Encryption and Decryption</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            color: #007BFF;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .custom-file-upload {
+            border: 1px solid #ced4da;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: #fff;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #0056b3;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        .success-message {
+            color: #28a745;
+        }
+
+        p {
+            color: #555;
+            margin-top: 15px;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('encryptionForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                var encryptionKey = document.getElementById("encryption_key").value;
+                var verifyKey = document.getElementById("verify_key").value;
+
+                if (encryptionKey !== verifyKey) {
+                    showAlert("Error: The encryption keys do not match. Please check and re-enter the keys.", 'error');
+                    return;
+                }
+
+                // Continue with form submission
+                this.submit();
+            });
+
+            document.getElementById('decryptionForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                var decryptionKey = document.getElementById("decryption_key").value;
+                var verifyDecryptionKey = document.getElementById("verify_decryption_key").value;
+
+                if (decryptionKey !== verifyDecryptionKey) {
+                    showAlert("Error: The decryption keys do not match. Please check and re-enter the keys.", 'error');
+                    return;
+                }
+
+                // Continue with form submission
+                this.submit();
+            });
+
+            function showAlert(message, type) {
+                var alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+                var alertDiv = document.createElement('div');
+                alertDiv.className = 'alert ' + alertClass;
+                alertDiv.innerHTML = message;
+
+                var form = document.querySelector('.message');
+                form.appendChild(alertDiv);
+
+                setTimeout(function () {
+                    alertDiv.remove();
+                }, 5000);
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <h1>DICOM Image Encryption and Decryption</h1>
+
+    {% if error %}
+    <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    <form id="encryptionForm" method="post" enctype="multipart/form-data">
+        <h2>Encryption</h2>
+        <label for="dicom_file_encrypt" class="custom-file-upload">
+            Select DICOM File for Encryption
+            <input type="file" name="dicom_file_encrypt" accept=".dcm" required>
+        </label>
+
+        <label for="encryption_key">Enter Encryption Key:</label>
+        <input type="password" name="encryption_key" id="encryption_key" required>
+
+        <label for="verify_key">Verify Encryption Key:</label>
+        <input type="password" name="verify_key" id="verify_key" required>
+
+        <button type="submit">Encrypt</button>
+    </form>
+
+    {% if message_encrypt %}
+    <div class="message">
+        <p class="success-message">{{ message_encrypt }}</p>
+        <p><a href="{{ url_for('download', filename='encrypted_dicom.dcm') }}" download>Download Encrypted Image</a></p>
+    </div>
+    {% endif %}
+
+    <form id="decryptionForm" method="post" enctype="multipart/form-data">
+        <h2>Decryption</h2>
+        <label for="dicom_file_decrypt" class="custom-file-upload">
+            Select DICOM File for Decryption
+            <input type="file" name="dicom_file_decrypt" accept=".dcm" required>
+        </label>
+
+        <label for="decryption_key">Enter Decryption Key:</label>
+        <input type="password" name="decryption_key" id="decryption_key" required>
+
+        <label for="verify_decryption_key">Verify Decryption Key:</label>
+        <input type="password" name="verify_decryption_key" id="verify_decryption_key" required>
+
+        <button type="submit">Decrypt</button>
+    </form>
+
+    {% if message_decrypt %}
+    <div class="message">
+        <p class="success-message">{{ message_decrypt }}</p>
+        <p><a href="{{ url_for('download', filename='decrypted_dicom.dcm') }}" download>Download Decrypted Image</a></p>
+    </div>
+    {% endif %}
+
+    <p>View DICOM images using <a href="https://www.imaios.com/en/imaios-dicom-viewer" target="_blank"
+            rel="noopener noreferrer">Dicom image viewer</a></p>
+</body>
+
+</html>

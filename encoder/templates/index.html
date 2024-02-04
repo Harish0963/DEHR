@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Encoder/Decoder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: rgb(205, 211, 222);
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: #9a2ecc;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #9900cc;
+            color: #fffffff9;
+            cursor: pointer;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            resize: none;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .copy-btn {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #9900cc;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .copy-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Base64 Encoder/Decoder</h1>
+
+        <!-- Encode Form -->
+        <form id="encodeForm">
+            <label for="inputString">Input String:</label>
+            <textarea id="inputString" rows="4" cols="50"></textarea><br>
+            <button type="button" onclick="encode()">Encode to Base64</button>
+        </form>
+
+        <!-- Display Encoded Result -->
+        <div id="encodedResult" class="result"></div>
+        <button class="copy-btn" onclick="copyToClipboard('encodedResult')">Copy Encoded</button>
+
+        <!-- Decode Form -->
+        <form id="decodeForm">
+            <label for="base64String">Base64 String:</label>
+            <textarea id="base64String" rows="4" cols="50"></textarea><br>
+            <button type="button" onclick="decode()">Decode to String</button>
+        </form>
+
+        <!-- Display Decoded Result -->
+        <div id="decodedResult" class="result"></div>
+        <button class="copy-btn" onclick="copyToClipboard('decodedResult')">Copy Decoded</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js"></script>
+    <script>
+        new ClipboardJS('.copy-btn');
+
+        async function encode() {
+            const inputString = document.getElementById('inputString').value;
+            const response = await fetch('/encode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ inputString }),
+            });
+            const result = await response.json();
+            document.getElementById('encodedResult').innerText = result.base64String;
+        }
+
+        async function decode() {
+            const base64String = document.getElementById('base64String').value;
+            const response = await fetch('/decode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ base64String }),
+            });
+            const result = await response.json();
+            document.getElementById('decodedResult').innerText = result.decodedString;
+        }
+
+        function copyToClipboard(elementId) {
+            const textElement = document.getElementById(elementId);
+            const text = textElement.innerText.trim();
+
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(`Copied to clipboard.`);
+                }).catch((err) => {
+                    console.error('Unable to copy to clipboard', err);
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

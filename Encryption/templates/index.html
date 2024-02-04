@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Encryption and Decryption</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            color: #4caf50;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 400px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="password"],
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #encryptedOutput,
+        #decryptedOutput {
+            margin-top: 20px;
+            padding: 10px;
+            padding-left: 10%;
+            overflow-y: auto;
+            max-height: 200px;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            background-color: #4caf50;
+            color: #fff;
+            border-radius: 4px;
+            white-space: pre-line;
+        }
+
+        #copyEncrypted,
+        #copyDecrypted {
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Data Encryption and Decryption</h1>
+
+    <!-- Encryption Form -->
+    <form id="encryptionForm">
+        <label for="inputData">Enter Data:</label>
+        <input type="text" id="inputData" name="inputData" required>
+
+        <label for="encryptionKey">Encryption Key:</label>
+        <input type="password" id="encryptionKey" name="encryptionKey" required>
+
+        <label for="verifyKey">Verify Key:</label>
+        <input type="password" id="verifyKey" name="verifyKey" required>
+
+        <button type="button" onclick="encryptData()">Encrypt</button>
+        <p id="encryptionError" class="error-message"></p>
+    </form>
+
+    <p id="encryptedOutput"></p>
+    <button id="copyEncrypted" onclick="copyToClipboard('encryptedOutput')">Copy Encrypted Data</button>
+
+    <!-- Decryption Form -->
+    <form id="decryptionForm">
+        <label for="encryptedInput">Encrypted Input:</label>
+        <input type="text" id="encryptedInput" name="encryptedInput" required>
+
+        <label for="decryptionKey">Decryption Key:</label>
+        <input type="password" id="decryptionKey" name="decryptionKey" required>
+
+        <label for="verifyDecryptionKey">Verify Key:</label>
+        <input type="password" id="verifyDecryptionKey" name="verifyDecryptionKey" required>
+
+        <button type="button" onclick="decryptData()">Decrypt</button>
+        <p id="decryptionError" class="error-message"></p>
+    </form>
+
+    <p id="decryptedOutput"></p>
+    <button id="copyDecrypted" onclick="copyToClipboard('decryptedOutput')">Copy Decrypted Data</button>
+
+    <script>
+        function encryptData() {
+            var inputData = document.getElementById('inputData').value;
+            var encryptionKey = document.getElementById('encryptionKey').value;
+            var verifyKey = document.getElementById('verifyKey').value;
+
+            // Check if the input data is empty
+            if (inputData.trim() === "") {
+                document.getElementById('encryptionError').innerText = "Error: Please enter valid data.";
+                return;
+            }
+
+            // Verify that the encryption keys match
+            if (encryptionKey !== verifyKey) {
+                document.getElementById('encryptionError').innerText = "Error: Encryption keys do not match. Please check and re-enter the keys.";
+                return;
+            } else {
+                document.getElementById('encryptionError').innerText = "";
+            }
+
+            // Send data to Python script for encryption
+            fetch('/encrypt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: inputData, key: parseFloat(encryptionKey) }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var encryptedOutput = data.encryptedData;
+                    document.getElementById('encryptedOutput').innerText = 'Encrypted Data: ' + encryptedOutput;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function decryptData() {
+            var encryptedInput = document.getElementById('encryptedInput').value;
+            var decryptionKey = document.getElementById('decryptionKey').value;
+            var verifyDecryptionKey = document.getElementById('verifyDecryptionKey').value;
+
+            // Check if the encrypted input is empty
+            if (encryptedInput.trim() === "") {
+                document.getElementById('decryptionError').innerText = "Error: Please enter valid encrypted data.";
+                return;
+            }
+
+            // Verify that the decryption keys match
+            if (decryptionKey !== verifyDecryptionKey) {
+                document.getElementById('decryptionError').innerText = "Error: Decryption keys do not match. Please check and re-enter the keys.";
+                return;
+            } else {
+                document.getElementById('decryptionError').innerText = "";
+            }
+
+            // Send data to Python script for decryption
+            fetch('/decrypt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: encryptedInput, key: parseFloat(decryptionKey) }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var decryptedOutput = data.decryptedData;
+                    document.getElementById('decryptedOutput').innerText = decryptedOutput;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function copyToClipboard(elementId) {
+            var textElement = document.getElementById(elementId);
+            var textToCopy = textElement.innerText;
+
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    console.log('Text copied to clipboard:', textToCopy);
+                    alert('Text copied to clipboard!');
+                })
+                .catch((error) => {
+                    console.error('Unable to copy text to clipboard', error);
+                });
+        }
+    </script>
+
+</body>
+
+</html>
